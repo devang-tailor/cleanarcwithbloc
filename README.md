@@ -39,8 +39,8 @@ lib/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/counter_app.git
-cd counter_app
+git clone https://github.com/devang-tailor/cleanarcwithbloc.git
+cd cleanarcwithbloc
 ```
 
 2. Install dependencies:
