@@ -79,7 +79,7 @@ app.*.map.json
 coverage/
 *.lcov
 
-# Fastlane related  
+# Fastlane related
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots
