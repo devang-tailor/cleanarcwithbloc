@@ -1,30 +1,62 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:cleanarcwithbloc/presentation/bloc/counter_event.dart';
+import 'package:cleanarcwithbloc/presentation/bloc/counter_state.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'package:cleanarcwithbloc/domain/entities/counter.dart';
+import 'package:cleanarcwithbloc/domain/repositories/counter_repository.dart';
+import 'package:cleanarcwithbloc/domain/usecases/get_counter.dart';
+import 'package:cleanarcwithbloc/domain/usecases/increment_counter.dart';
+import 'package:cleanarcwithbloc/domain/usecases/decrement_counter.dart';
+import 'package:cleanarcwithbloc/presentation/bloc/counter_bloc.dart';
 
-import 'package:cleanarcwithbloc/main.dart';
+class MockCounterRepository extends Mock implements CounterRepository {
+  int _count = 0;
+
+  @override
+  Counter getCounter() => Counter(value: _count);
+
+  @override
+  void incrementCounter() {
+    _count++;
+  }
+
+  @override
+  void decrementCounter() {
+    _count--;
+  }
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('Counter Bloc Tests', () {
+    late MockCounterRepository mockRepository;
+    late CounterBloc counterBloc;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    setUp(() {
+      mockRepository = MockCounterRepository();
+      counterBloc = CounterBloc(
+          GetCounter(mockRepository),
+          IncrementCounter(mockRepository),
+          DecrementCounter(mockRepository)
+      );
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    tearDown(() {
+      counterBloc.close();
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    blocTest<CounterBloc, CounterState>(
+      'increments counter',
+      build: () => counterBloc,
+      act: (bloc) => bloc.add(IncrementCounterEvent()),
+      expect: () => [isA<CounterState>().having((state) => state.count, 'count', 1)],
+    );
+
+    blocTest<CounterBloc, CounterState>(
+      'decrements counter',
+      build: () => counterBloc,
+      act: (bloc) => bloc.add(DecrementCounterEvent()),
+      expect: () => [isA<CounterState>().having((state) => state.count, 'count', -1)],
+    );
   });
 }
